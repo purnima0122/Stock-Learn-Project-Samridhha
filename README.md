@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
@@ -96,3 +97,7 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+=======
+# Stock-Learn-Project-Samridhha
+Stock-Learning is a beginner-friendly initiative aimed at making financial literacy simple and accessible. The platform is currently under development, with NestJS being used to build a structured and scalable backend.
+>>>>>>> bf0f599ead350bdee01c92649ab7e0ba3e0048c9
