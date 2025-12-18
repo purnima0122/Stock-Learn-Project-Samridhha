@@ -29,8 +29,10 @@ export class AuthService {
     if(emailInUse){
       throw new BadRequestException('Email is already in use');
     }
+
     //Hash password 
     const hashedPassword=await bcrypt.hash(password, 10);
+
 
     //Create user document in database 
     await this.UserModel.create({
@@ -55,6 +57,7 @@ export class AuthService {
     if(!passwordMatch){
       throw new UnauthorizedException('Wrong credentails');
     }
+
     //generate jwt tokens 
     
     const tokens=await this.generateUserTokens(user._id);
@@ -66,7 +69,7 @@ export class AuthService {
 
 
   async refreshTokens(refreshToken:string){
-    const token= await this.RefreshTokenModel.findOneAndDelete({
+    const token= await this.RefreshTokenModel.findOne({
       token:refreshToken,
       expiryDate:{ $gte: new Date()}
     });
@@ -78,7 +81,7 @@ export class AuthService {
 
   //separate function to generate usertoken to make the code modular
   async generateUserTokens(userId){
-    const accessToken =this.jwtService.sign({userId},{expiresIn: '1h'});
+    const accessToken =this.jwtService.sign({userId},{expiresIn: '72 hr'});
 
     const RefreshToken=uuidv4();
 
@@ -94,6 +97,11 @@ export class AuthService {
     //expiry date is calculated to be three days from now 
     const expiryDate= new Date();
     expiryDate.setDate(expiryDate.getDate()+3);
-    await this.RefreshTokenModel.create({token,userId,expiryDate})
+    await this.RefreshTokenModel.updateOne({userId},
+      {$set: {expiryDate,token}},
+      {
+        upsert:true,
+      }
+    );
   }
 }
