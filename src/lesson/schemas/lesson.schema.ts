@@ -1,0 +1,27 @@
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
+
+export type LessonDocument = Lesson & Document;
+
+@Schema({ timestamps: true })
+export class Lesson {
+  @Prop({ required: true })
+  title: string;
+
+  @Prop({ required: true })
+  module: string;
+
+  @Prop({ required: true })
+  content: string;
+
+  @Prop({ required: true })
+  order: number;
+
+  @Prop({ default: 5 })
+  duration: number;
+
+  @Prop({ default: true })
+  isPublished: boolean;
+}
+
+export const LessonSchema = SchemaFactory.createForClass(Lesson);

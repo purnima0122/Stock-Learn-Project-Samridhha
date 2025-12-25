@@ -8,6 +8,9 @@ import { loginDto } from './dtos/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import { RefreshToken } from './schemas/refresh.token.schema';
 import { v4 as uuidv4 } from 'uuid';
+import { nanoid } from 'nanoid';
+import { ResetToken } from './schemas/reset.token.schema';
+import { MailService } from 'src/services/mail.service';
 
 
 @Injectable()
@@ -15,7 +18,9 @@ export class AuthService {
   constructor(
     @InjectModel(User.name)private UserModel: Model<User>,
     @InjectModel(RefreshToken.name)private RefreshTokenModel: Model<RefreshToken>,
+    @InjectModel(ResetToken.name)private ResetTokenModel: Model<ResetToken>,
   private jwtService: JwtService,
+  private mailService: MailService,
 ){}
 
   async signup(signupData: signupDto){
@@ -87,6 +92,33 @@ export class AuthService {
     user.password= newHashedPassword;
     await user.save();
 
+  }
+
+  //forgot password 
+  async forgotPassword(email:string)
+  {
+    //check if the user exists
+    const user= await this.UserModel.findOne({email});
+
+    if(user)
+    {
+    //if user exits, generate a password reset link 
+    const expiryDate= new Date();
+    expiryDate.setHours(expiryDate.getHours()+1);
+    const resetToken= nanoid(64);
+    await this.ResetTokenModel.create({
+     token: resetToken,
+      userId: user._id,
+      expiryDate
+    });
+    //send the link to the user via email( using nodemailer/SES/etc...)
+
+     this.mailService.sendPasswordResetEmail(email,resetToken);
+    }
+
+    
+    return {"message":"If this user exits, they will receive an email"};
+  
   }
 
   async refreshTokens(refreshToken:string){

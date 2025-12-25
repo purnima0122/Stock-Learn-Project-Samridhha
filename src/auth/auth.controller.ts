@@ -6,6 +6,7 @@ import { RefreshToken } from './schemas/refresh.token.schema';
 import { RefreshTokenDto } from './dtos/refresh-tokens.dto';
 import { ChangePasswordDto } from './dtos/change-password.dto';
 import { AuthGuard } from 'src/guards/auth.guard';
+import { ForgotPasswordDto } from './dtos/forgot-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -32,7 +33,7 @@ export class AuthController {
   //POST change password
   //we need this protected
   @UseGuards(AuthGuard)
-  @Put('change-Password')
+  @Put('change-password')
   async changePassword(@Body()changePasswordDto: ChangePasswordDto, @Req() req,){
     return this.authService.changePassword(
       req.userId,
@@ -40,8 +41,12 @@ export class AuthController {
   }
 
   //POST forgot password
-
+  @Post('forgot-password')
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto)
+  {
+    return this.authService.forgotPassword(forgotPasswordDto.email);
+  }
 
   //Reset Password
-
+  
 }

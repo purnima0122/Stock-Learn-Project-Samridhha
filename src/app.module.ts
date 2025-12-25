@@ -5,6 +5,9 @@ import { AuthModule } from './auth/auth.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
+import { UsersModule } from './users/users.module';
+import { LessonModule } from './lesson/lesson.module';
+import { ProgressModule } from './progress/progress.module';
 import config from './config/config';
 
 @Module({
@@ -32,7 +35,13 @@ import config from './config/config';
     inject: [ConfigService]
   }),
 
-    AuthModule],
+    AuthModule,
+
+    UsersModule,
+
+    LessonModule,
+
+    ProgressModule],
 
   controllers: [AppController],
   providers: [AppService],
