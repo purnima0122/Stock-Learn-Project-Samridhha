@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { signupDto } from './dtos/signup.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -24,7 +24,7 @@ export class AuthService {
 ){}
 
   async signup(signupData: signupDto){
-    const{email,password,name}=signupData
+    const{email,phone, password,name}=signupData
 
 
     //check if email is in use 
@@ -35,6 +35,13 @@ export class AuthService {
       throw new BadRequestException('Email is already in use');
     }
 
+
+    //check if phone number is already in use 
+      const phoneInUse = await this.UserModel.findOne({ phone });
+    if (phoneInUse) {
+      throw new BadRequestException('Phone number is already in use');
+    }
+
     //Hash password 
     const hashedPassword=await bcrypt.hash(password, 10);
 
@@ -43,6 +50,7 @@ export class AuthService {
     await this.UserModel.create({
       name,
       email,
+      phone,
       password:hashedPassword,
     });
   }
@@ -119,6 +127,29 @@ export class AuthService {
     
     return {"message":"If this user exits, they will receive an email"};
   
+  }
+
+
+  //reset password 
+  async resetPassword(newPassword:string, resetToken:string){
+    //find a valid reset token document
+    const token=await this.RefreshTokenModel.findOneAndDelete({
+      token:resetToken,
+      expiryDate: {$gte:new Date()},
+    });
+    
+    if(!token){
+      throw new UnauthorizedException('Invalid link');
+    }
+
+    //change the user password(dont forget to hash it)
+    const user= await this.UserModel.findById(token.userId);
+    if(!user){
+      throw new InternalServerErrorException();
+    }
+    user.password=await bcrypt.hash(newPassword, 10);
+    await user.save();
+
   }
 
   async refreshTokens(refreshToken:string){

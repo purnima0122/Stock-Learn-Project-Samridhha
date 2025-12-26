@@ -2,29 +2,38 @@ import * as nodemailer from 'nodemailer';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export class MailService{
-  private transporter:nodemailer.Transporter;
+export class MailService {
+  private transporter: nodemailer.Transporter;
 
-  constructor(){
-const transporter = nodemailer.createTransport({
-    host: 'smtp.ethereal.email',
+  constructor() {
+    this.transporter = nodemailer.createTransport({
+       host: 'smtp.ethereal.email',
     port: 587,
     auth: {
-        user: 'neha0@ethereal.email',
-        pass: 'zMJCNqcmtryX8w8YEd'
-    }
-});
-
+        user: 'rosalinda.balistreri69@ethereal.email',
+        pass: '8aWeuAAHU6zCtN7pEG'
+    },
+    });
   }
 
-  async sendPasswordResetEmail(to:string, token:string){
-   const resetLink = `http://yourapp.com/reset-password?token=${token}`;//client
+  async sendPasswordResetEmail(to: string, token: string) {
+    const resetLink = `http://localhost:3001/reset-password?token=${token}`;
 
-    const mailOptions={
-      from:'Auth-backend service',
-      to: to,
-      subject:'Password Reset Request',
-      html:`<p> You requested a password reset. Click the link below to reset your password:</p><a href="${resetLink}">Reset Password</a></p>`
-    }
+    const mailOptions = {
+      from: '"Auth Backend" <no-reply@auth.com>',
+      to,
+      subject: 'Password Reset Request',
+      html: `
+        <p>You requested a password reset.</p>
+        <p>Click the link below to reset your password:</p>
+        <a href="${resetLink}">Reset Password</a>
+        <p>This link expires in 1 hour.</p>
+      `,
+    };
+
+    const info = await this.transporter.sendMail(mailOptions);
+
+    console.log('Password reset email sent');
+    console.log('Preview URL:', nodemailer.getTestMessageUrl(info));
   }
 }

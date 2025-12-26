@@ -11,4 +11,10 @@ export class signupDto {
   @MinLength(6)
   @Matches(/^(?=.*[0-9])/,{message:'Password must contain at least one number'})
   password:string;
+
+  @IsString()
+  @Matches(/^[0-9]{10}$/, {
+    message: 'Phone number must be 10 digits',
+  })
+  phone: string;
 }
