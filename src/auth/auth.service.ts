@@ -23,37 +23,54 @@ export class AuthService {
   private mailService: MailService,
 ){}
 
-  async signup(signupData: signupDto){
-    const{email,phone, password,name}=signupData
+  async signup(signupData: signupDto) {
+  const rawEmail = signupData.email ?? '';
+  const rawNumber = signupData.number ?? '';
+  const email = rawEmail.trim().toLowerCase();
+  const number = rawNumber.replace(/\s+/g, '');
+  const { password, name, address, wardNo } = signupData;
 
-
-    //check if email is in use 
-    const emailInUse= await this.UserModel.findOne({
-      email: signupData.email,
-    });
-    if(emailInUse){
-      throw new BadRequestException('Email is already in use');
-    }
-
-
-    //check if phone number is already in use 
-      const phoneInUse = await this.UserModel.findOne({ phone });
-    if (phoneInUse) {
-      throw new BadRequestException('Phone number is already in use');
-    }
-
-    //Hash password 
-    const hashedPassword=await bcrypt.hash(password, 10);
-
-
-    //Create user document in database 
-    await this.UserModel.create({
-      name,
-      email,
-      phone,
-      password:hashedPassword,
-    });
+  if (!email || !number || !password || !name || !address || !wardNo) {
+    throw new BadRequestException('Please fill all the fields');
   }
+
+  // Check email
+  const emailInUse = await this.UserModel.findOne({ email });
+  if (emailInUse) {
+    throw new BadRequestException('Email is already in use');
+  }
+
+  // Check phone number (number)
+  const phoneInUse = await this.UserModel.findOne({ number });
+  if (phoneInUse) {
+    throw new BadRequestException('Phone number is already in use');
+  }
+
+  // Hash password
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  // Create user
+  try {
+    await this.UserModel.create({
+    name,
+    email,
+    number,     
+    address,
+    wardNo,
+    password: hashedPassword,
+    isGoogleUser: false,
+    isProfileComplete: true,
+    });
+  } catch (error: any) {
+    if (error?.code === 11000) {
+      const duplicateField = Object.keys(error.keyPattern || {})[0] || 'value';
+      throw new BadRequestException(`Duplicate value for ${duplicateField}`);
+    }
+    throw error;
+  }
+
+  return { message: 'Signup successful' };
+}
 
   async login(credentials:loginDto){
     const {email,password}=credentials;
@@ -89,6 +106,10 @@ export class AuthService {
       throw new NotFoundException('User not found...');
     }
 
+    if (user.isGoogleUser || !user.password) {
+      throw new BadRequestException('Password change not available for Google users');
+    }
+
     //compare the old password with the password in the database
     const passwordMatch =await bcrypt.compare(oldPassword, user.password)
      if(!passwordMatch){
@@ -100,6 +121,7 @@ export class AuthService {
     user.password= newHashedPassword;
     await user.save();
 
+    return { message: 'Password changed successfully' };
   }
 
   //forgot password 
@@ -121,7 +143,7 @@ export class AuthService {
     });
     //send the link to the user via email( using nodemailer/SES/etc...)
 
-     this.mailService.sendPasswordResetEmail(email,resetToken);
+     await this.mailService.sendPasswordResetEmail(email,resetToken);
     }
 
     
@@ -130,10 +152,37 @@ export class AuthService {
   }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  async loginWithGoogle(user: any) {
+  const tokens = await this.generateUserTokens(user._id);
+
+  return {
+    ...tokens,
+    userId: user._id,
+  };
+}
+
+
+
   //reset password 
   async resetPassword(newPassword:string, resetToken:string){
     //find a valid reset token document
-    const token=await this.RefreshTokenModel.findOneAndDelete({
+    const token=await this.ResetTokenModel.findOneAndDelete({
       token:resetToken,
       expiryDate: {$gte:new Date()},
     });
@@ -150,6 +199,7 @@ export class AuthService {
     user.password=await bcrypt.hash(newPassword, 10);
     await user.save();
 
+    return { message: 'Password reset successfully' };
   }
 
   async refreshTokens(refreshToken:string){
@@ -189,7 +239,37 @@ export class AuthService {
     );
   }
 
+async validateGoogleUser(googleUser: {
+  email: string;
+  name: string;
+  avatar?: string;
+}) {
+  let user = await this.UserModel.findOne({ email: googleUser.email });
 
+  // If user does NOT exist → create one
+  if (!user) {
+    try {
+      user = await this.UserModel.create({
+        email: googleUser.email,
+        name: googleUser.name,
+        avatar: googleUser.avatar,
+        password: null,          // Google users don't have passwords
+        isGoogleUser: true,
+        isProfileComplete: false,
+      });
+    } catch (error: any) {
+      if (error?.code === 11000) {
+        const duplicateField =
+          Object.keys(error.keyPattern || {})[0] || 'value';
+        throw new BadRequestException(`Duplicate value for ${duplicateField}`);
+      }
+      throw error;
+    }
+  }
+
+  return user;
+}
 
 
 }
+

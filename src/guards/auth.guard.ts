@@ -1,5 +1,4 @@
 import { CanActivate, ExecutionContext, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
-import { ExecutionContextHost } from "@nestjs/core/helpers/execution-context-host";
 import { JwtService } from "@nestjs/jwt";
 import { Observable } from "rxjs";
 import { Request } from "express";
@@ -21,6 +20,7 @@ export class AuthGuard implements CanActivate{
     try{
         const payload=this.jwtService.verify(token);
         request.userId= payload.userId;
+        request.user = payload;
     }
     catch(e){
       Logger.error(e.message);

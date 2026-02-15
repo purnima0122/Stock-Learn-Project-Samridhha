@@ -8,14 +8,16 @@ import { JwtModule } from '@nestjs/jwt';
 import { UsersModule } from './users/users.module';
 import { LessonModule } from './lesson/lesson.module';
 import { ProgressModule } from './progress/progress.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 import config from './config/config';
+import googleOauthConfig from './config/google-oauth.config';
 
 @Module({
   imports:
   [ ConfigModule.forRoot({
     isGlobal:true,
     cache:true,
-    load:[config],
+    load:[config,googleOauthConfig],
   }),
        
     JwtModule.registerAsync({
@@ -40,8 +42,8 @@ import config from './config/config';
     UsersModule,
 
     LessonModule,
-
-    ProgressModule],
+    ProgressModule,
+    DashboardModule],
 
   controllers: [AppController],
   providers: [AppService],

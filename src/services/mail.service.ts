@@ -7,11 +7,11 @@ export class MailService {
 
   constructor() {
     this.transporter = nodemailer.createTransport({
-       host: 'smtp.ethereal.email',
+      host: 'smtp.ethereal.email',
     port: 587,
     auth: {
-        user: 'rosalinda.balistreri69@ethereal.email',
-        pass: '8aWeuAAHU6zCtN7pEG'
+        user: 'wallace19@ethereal.email',
+        pass: '7GMZxrRkH62n4CHDhB'
     },
     });
   }

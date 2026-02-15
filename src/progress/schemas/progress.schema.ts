@@ -16,6 +16,21 @@ export class Progress {
 
   @Prop()
   completedAt?: Date;
+
+  @Prop({ default: 0 })
+  quizAttempts: number;
+
+  @Prop({ default: 0 })
+  bestScore: number;
+
+  @Prop({ default: 0 })
+  lastScore: number;
+
+  @Prop({ default: false })
+  quizPassed: boolean;
+
+  @Prop()
+  lastQuizAttemptAt?: Date;
 }
 
 export const ProgressSchema = SchemaFactory.createForClass(Progress);
